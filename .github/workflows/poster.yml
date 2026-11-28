@@ -1,0 +1,47 @@
+name: Posten (Instagram + Facebook)
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: "run = posten, check = Zugaenge pruefen, dry = nur anzeigen"
+        default: run
+        type: choice
+        options: [run, check, dry]
+  push:
+    paths: ["poster/warteschlange.json"]
+
+concurrency:
+  group: poster
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  posten:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Faellige Beitraege posten
+        env:
+          KG_PAGE_ID: ${{ secrets.KG_PAGE_ID }}
+          KG_PAGE_TOKEN: ${{ secrets.KG_PAGE_TOKEN }}
+          KG_IG_ID: ${{ secrets.KG_IG_ID }}
+          NG_PAGE_ID: ${{ secrets.NG_PAGE_ID }}
+          NG_PAGE_TOKEN: ${{ secrets.NG_PAGE_TOKEN }}
+          NG_IG_ID: ${{ secrets.NG_IG_ID }}
+        run: python3 poster/poster.py "${{ inputs.modus || 'run' }}"
+      - name: Ergebnis speichern
+        run: |
+          if ! git diff --quiet poster/warteschlange.json; then
+            git config user.name "poster-bot"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add poster/warteschlange.json
+            git commit -m "Poster: Status aktualisiert"
+            git pull --rebase
+            git push
+          fi
