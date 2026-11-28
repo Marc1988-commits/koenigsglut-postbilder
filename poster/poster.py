@@ -12,7 +12,7 @@ Zugangsdaten kommen aus Umgebungsvariablen (GitHub-Secrets), je Konto mit Praefi
 import json, os, sys, time, urllib.parse, urllib.request, urllib.error
 from datetime import datetime, timedelta, timezone
 
-API = "https://graph.facebook.com/" + os.environ.get("GRAPH_VERSION", "v23.0")
+API = "https://graph.facebook.com/" + os.environ.get("GRAPH_VERSION", "v25.0")
 QUEUE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "warteschlange.json")
 PREFIX = {"koenigsglut": "KG_", "nordgrimmsaga": "NG_"}
 MAX_LATE = timedelta(hours=int(os.environ.get("MAX_LATE_HOURS", "6")))
